@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xxlyth - RAW | Official Album Experience</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Orbitron:wght@600;800;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#6b21a8',
+                            darkPurple: '#18022c',
+                            deepestPurple: '#0b0014',
+                            cyan: '#06b6d4',
+                            brightCyan: '#22d3ee',
+                            pinkGlow: '#e086ff',
+                        }
+                    },
+                    fontFamily: {
+                        rawTitle: ['Orbitron', 'sans-serif'],
+                        graffiti: ['Permanent Marker', 'cursive'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Neon Glows & Typography Shadow Effects */
+        .raw-text-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: linear-gradient(180deg, #a855f7 0%, #3b82f6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(6, 182, 212, 0.6), 0 0 40px rgba(168, 85, 247, 0.4);
+            filter: drop-shadow(2px 4px 0px #000);
+            letter-spacing: 0.1em;
+        }
+
+        .raw-stroke {
+            -webkit-text-stroke: 2px #06b6d4;
+        }
+
+        .neon-border {
+            box-shadow: 0 0 15px rgba(107, 33, 168, 0.5), inset 0 0 15px rgba(6, 182, 212, 0.3);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+        }
+
+        .neon-box-glow {
+            box-shadow: 0 0 25px rgba(147, 51, 234, 0.4), 0 0 50px rgba(6, 182, 212, 0.2);
+        }
+
+        /* 3D Dice Floating Canvas Background */
+        #dice-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0014;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6b21a8;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+
+        /* Audio Visualizer Canvas */
+        #visualizer {
+            background: rgba(11, 0, 20, 0.8);
+            border-top: 1px solid rgba(34, 211, 238, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-[#0b0014] text-gray-100 font-sans min-h-screen relative overflow-x-hidden">
+
+    <!-- Floating Background Canvas for Dice Particles -->
+    <canvas id="dice-canvas"></canvas>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+
+        <!-- Top Navigation -->
+        <nav class="sticky top-0 z-50 bg-[#0b0014]/90 backdrop-blur-md border-b border-purple-900/50 px-4 py-3">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="raw-text-title text-2xl tracking-tighter">RAW</span>
+                    <span class="text-xs bg-purple-900/80 text-cyan-300 font-mono px-2 py-0.5 rounded border border-cyan-500/30">Xxlyth</span>
+                </div>
+                
+                <div class="flex items-center gap-4 text-sm font-semibold">
+                    <div class="flex items-center gap-2 bg-purple-950/80 px-3 py-1.5 rounded-full border border-purple-800/50">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span id="online-counter" class="text-cyan-300 font-mono">1</span>
+                        <span class="text-xs text-gray-400 hidden sm:inline">Listeners Online</span>
+                    </div>
+
+                    <button id="like-album-btn" class="flex items-center gap-2 bg-gradient-to-r from-purple-800 to-cyan-700 hover:from-purple-700 hover:to-cyan-600 px-4 py-1.5 rounded-full text-white font-medium transition duration-200 transform hover:scale-105 active:scale-95 shadow-lg">
+                        <i class="fa-solid fa-heart text-pink-400" id="album-heart-icon"></i>
+                        <span id="album-likes-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 space-y-10">
+
+            <!-- Hero Section: Cover Art & Main Header -->
+            <section class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-gradient-to-br from-purple-950/60 via-[#18022c]/80 to-[#0b0014] p-6 md:p-8 rounded-3xl border border-purple-800/40 neon-box-glow">
+                
+                <!-- Album Artwork Container -->
+                <div class="md:col-span-5 relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                    <div class="relative aspect-square rounded-2xl overflow-hidden border-2 border-cyan-500/50 bg-black">
+                        <!-- Cover Art SVG Visualization -->
+                        <svg viewBox="0 0 500 500" class="w-full h-full object-cover">
+                            <defs>
+                                <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.8"/>
+                                    <stop offset="60%" stop-color="#3b0764" stop-opacity="0.9"/>
+                                    <stop offset="100%" stop-color="#0b0014"/>
+                                </radialGradient>
+                                <linearGradient id="gunMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#334155"/>
+                                    <stop offset="50%" stop-color="#1e293b"/>
+                                    <stop offset="100%" stop-color="#0f172a"/>
+                                </linearGradient>
+                                <linearGradient id="diceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f8fafc"/>
+                                    <stop offset="100%" stop-color="#cbd5e1"/>
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Background -->
+                            <rect width="500" height="500" fill="url(#bgGlow)"/>
+                            
+                            <!-- Anime Character Silhouette & Gun Motif -->
+                            <!-- Floating Dice in Foreground -->
+                            <g transform="translate(60, 320) rotate(-15)">
+                                <rect width="70" height="70" rx="12" fill="#e2e8f0" stroke="#06b6d4" stroke-width="3"/>
+                                <circle cx="20" cy="20" r="6" fill="#0284c7"/>
+                                <circle cx="50" cy="50" r="6" fill="#0284c7"/>
+                                <circle cx="50" cy="20" r="6" fill="#0284c7"/>
+                                <circle cx="20" cy="50" r="6" fill="#0284c7"/>
+                                <circle cx="35" cy="35" r="6" fill="#0284c7"/>
+                            </g>
+                            
+                            <g transform="translate(320, 260) rotate(25)">
+                                <rect width="110" height="110" rx="18" fill="#f1f5f9" stroke="#a855f7" stroke-width="4"/>
+                                <circle cx="30" cy="30" r="8" fill="#581c87"/>
+                                <circle cx="80" cy="80" r="8" fill="#581c87"/>
+                                <circle cx="80" cy="30" r="8" fill="#581c87"/>
+                                <circle cx="30" cy="80" r="8" fill="#581c87"/>
+                                <circle cx="55" cy="55" r="8" fill="#581c87"/>
+                                <circle cx="30" cy="55" r="8" fill="#581c87"/>
+                                <circle cx="80" cy="55" r="8" fill="#581c87"/>
+                            </g>
+
+                            <!-- Character with Gun (Stylized Anime Representation) -->
+                            <!-- Arm & Gun Barrel Pointing Front -->
+                            <path d="M 120 180 L 300 220 L 280 480 Z" fill="#3b0764" />
+                            <path d="M 220 220 L 480 200 L 480 320 L 220 300 Z" fill="url(#gunMetal)" stroke="#06b6d4" stroke-width="2"/>
+                            <!-- Barrel Opening front perspective -->
+                            <ellipse cx="430" cy="255" rx="35" ry="45" fill="#020617" stroke="#38bdf8" stroke-width="4"/>
+                            <ellipse cx="430" cy="255" rx="20" ry="26" fill="#000"/>
+
+                            <!-- Character face & eyes in background -->
+                            <circle cx="130" cy="220" r="70" fill="#2e1065"/>
+                            <ellipse cx="110" cy="210" rx="12" ry="8" fill="#38bdf8"/>
+                            <ellipse cx="160" cy="210" rx="12" ry="8" fill="#38bdf8"/>
+
+                            <!-- Top floating die -->
+                            <g transform="translate(180, 20) rotate(12)">
+                                <rect width="80" height="80" rx="14" fill="#e2e8f0" stroke="#a855f7" stroke-width="3"/>
+                                <circle cx="25" cy="25" r="7" fill="#1e1b4b"/>
+                                <circle cx="55" cy="55" r="7" fill="#1e1b4b"/>
+                                <circle cx="55" cy="25" r="7" fill="#1e1b4b"/>
+                                <circle cx="25" cy="55" r="7" fill="#1e1b4b"/>
+                            </g>
+                        </svg>
+                        
+                        <div class="absolute bottom-2 left-2 bg-black/80 backdrop-blur border border-purple-500/40 text-xs px-3 py-1 rounded-full text-cyan-300 font-mono">
+                            OFFICIAL COVER ART
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Album Title & Information -->
+                <div class="md:col-span-7 space-y-6">
+                    <div>
+                        <div class="inline-block px-3 py-1 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-xs rounded-full uppercase tracking-wider mb-3">
+                            <i class="fa-solid fa-compact-disc animate-spin text-cyan-400 mr-2"></i>New Release Album
+                        </div>
+                        
+                        <h1 class="text-6xl md:text-8xl font-black raw-text-title tracking-wider leading-none mb-1">
+                            RAW
+                        </h1>
+                        <h2 class="text-3xl font-extrabold text-cyan-300 tracking-wide font-rawTitle flex items-center gap-3">
+                            BY XXLYTH
+                        </h2>
+                    </div>
+
+                    <p class="text-gray-300 text-sm md:text-base leading-relaxed border-l-2 border-cyan-500/50 pl-4 py-1">
+                        Step into the dark neon underworld of <span class="text-cyan-300 font-semibold">Xxlyth</span>. 8 heavy-hitting drill tracks packed with high-octane 808 slides, atmospheric synth pads, and raw street energy. High risks, high rewards.
+                    </p>
+
+                    <!-- Album Stats Bar -->
+                    <div class="grid grid-cols-3 gap-3 bg-purple-950/40 p-4 rounded-xl border border-purple-800/30 text-center font-mono">
+                        <div>
+                            <div class="text-xs text-gray-400">TRACKS</div>
+                            <div class="text-xl font-bold text-cyan-300">8</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400">GENRE</div>
+                            <div class="text-xl font-bold text-purple-300">DRILL / TRAP</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400">TOTAL PLAYS</div>
+                            <div id="total-album-plays" class="text-xl font-bold text-cyan-300">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button id="main-play-btn" class="flex-1 sm:flex-none flex items-center justify-center gap-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-extrabold px-8 py-3.5 rounded-full transition duration-200 transform hover:scale-105 shadow-lg shadow-cyan-500/20">
+                            <i class="fa-solid fa-play text-lg"></i>
+                            <span>PLAY FULL ALBUM</span>
+                        </button>
+                        
+                        <button id="open-support-btn" class="flex items-center justify-center gap-2 bg-purple-900/60 hover:bg-purple-800/80 text-cyan-300 border border-cyan-500/40 px-6 py-3.5 rounded-full font-bold transition duration-200">
+                            <i class="fa-brands fa-paypal text-cyan-400"></i>
+                            <span>SUPPORT ARTIST</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tracklist & Player Grid -->
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Tracklist Section -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="flex items-center justify-between border-b border-purple-800/50 pb-3">
+                        <h3 class="text-xl font-extrabold text-cyan-300 font-rawTitle flex items-center gap-2">
+                            <i class="fa-solid fa-list-ol text-purple-400"></i> ALBUM TRACKLIST
+                        </h3>
+                        <span class="text-xs text-gray-400 font-mono">Select a track to synthesize & stream</span>
+                    </div>
+
+                    <div id="tracklist-container" class="space-y-2.5">
+                        <!-- Dynamic track items populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Interactive Artwork & Lore Gallery Column -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="border-b border-purple-800/50 pb-3">
+                        <h3 class="text-xl font-extrabold text-cyan-300 font-rawTitle flex items-center gap-2">
+                            <i class="fa-solid fa-images text-purple-400"></i> ARTWORK & CONCEPT
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Gallery Thumbnails -->
+                        <div class="gallery-thumb group relative aspect-square rounded-xl overflow-hidden border border-purple-800 cursor-pointer bg-purple-950" data-img="cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
+                            <div class="w-full h-full flex items-center justify-center text-purple-400 group-hover:scale-110 transition duration-300">
+                                <i class="fa-solid fa-gun text-4xl"></i>
+                            </div>
+                            <span class="absolute bottom-2 left-2 z-20 text-xs font-bold text-cyan-300">Cover Art</span>
+                        </div>
+
+                        <div class="gallery-thumb group relative aspect-square rounded-xl overflow-hidden border border-purple-800 cursor-pointer bg-purple-950" data-img="title">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
+                            <div class="w-full h-full flex items-center justify-center text-cyan-400 group-hover:scale-110 transition duration-300 font-rawTitle font-bold text-xl">
+                                RAW LOGO
+                            </div>
+                            <span class="absolute bottom-2 left-2 z-20 text-xs font-bold text-cyan-300">Title Graphic</span>
+                        </div>
+
+                        <div class="gallery-thumb group relative aspect-square rounded-xl overflow-hidden border border-purple-800 cursor-pointer bg-purple-950" data-img="dice">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
+                            <div class="w-full h-full flex items-center justify-center text-purple-400 group-hover:scale-110 transition duration-300">
+                                <i class="fa-solid fa-dice-five text-4xl"></i>
+                            </div>
+                            <span class="absolute bottom-2 left-2 z-20 text-xs font-bold text-cyan-300">High Rollers</span>
+                        </div>
+
+                        <div class="gallery-thumb group relative aspect-square rounded-xl overflow-hidden border border-purple-800 cursor-pointer bg-purple-950" data-img="lore">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
+                            <div class="w-full h-full flex items-center justify-center text-cyan-400 group-hover:scale-110 transition duration-300">
+                                <i class="fa-solid fa-book-skull text-4xl"></i>
+                            </div>
+                            <span class="absolute bottom-2 left-2 z-20 text-xs font-bold text-cyan-300">Album Lore</span>
+                        </div>
+                    </div>
+
+                    <!-- Album Concept Box -->
+                    <div class="bg-purple-950/40 p-4 rounded-xl border border-purple-800/40 space-y-2">
+                        <h4 class="text-sm font-bold text-purple-300 uppercase tracking-wide">Album Concept</h4>
+                        <p class="text-xs text-gray-300 leading-relaxed">
+                            "RAW" represents an unfiltered dive into high-stakes choices. Inspired by cyberpunk neon aesthetics and street drill culture, every track synthesizes heavy sliding sub frequencies and chaotic hi-hat patterns.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Fixed Bottom Audio Player & Visualizer -->
+        <footer class="sticky bottom-0 z-40 bg-[#0b0014]/95 backdrop-blur-lg border-t border-purple-800/60 shadow-2xl">
+            <!-- Visualizer Canvas -->
+            <canvas id="visualizer" class="w-full h-12 block"></canvas>
+            
+            <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <!-- Currently Playing Info -->
+                <div class="flex items-center gap-3 w-full md:w-1/3">
+                    <div class="w-12 h-12 bg-purple-900 rounded-lg flex items-center justify-center border border-cyan-500/40 flex-shrink-0 text-cyan-400 font-bold">
+                        <i id="player-icon" class="fa-solid fa-music text-xl"></i>
+                    </div>
+                    <div class="truncate">
+                        <div id="player-title" class="text-sm font-bold text-white truncate">Select a Track</div>
+                        <div id="player-artist" class="text-xs text-cyan-400 font-mono truncate">Xxlyth — RAW</div>
+                    </div>
+                </div>
+
+                <!-- Player Controls -->
+                <div class="flex items-center gap-4 w-full md:w-auto justify-center">
+                    <button id="prev-btn" class="text-gray-400 hover:text-cyan-300 transition text-lg p-2">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button id="play-pause-btn" class="w-12 h-12 bg-gradient-to-r from-cyan-400 to-purple-600 hover:scale-105 rounded-full text-black flex items-center justify-center transition shadow-lg text-lg">
+                        <i id="play-icon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+                    <button id="next-btn" class="text-gray-400 hover:text-cyan-300 transition text-lg p-2">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <!-- Extra Tools (Lyrics / Sound Synth Controls) -->
+                <div class="flex items-center gap-3 w-full md:w-1/3 justify-end">
+                    <button id="open-lyrics-btn" class="text-xs bg-purple-900/60 hover:bg-purple-800 text-cyan-300 border border-purple-700/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-quote-left"></i>
+                        <span>Lyrics</span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-xs text-gray-400"></i>
+                        <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="0.8" class="w-20 accent-cyan-400 h-1 bg-purple-900 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Lyrics Drawer Modal -->
+    <div id="lyrics-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-[#18022c] to-[#0b0014] border border-cyan-500/40 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="p-4 border-b border-purple-800/50 flex items-center justify-between">
+                <div>
+                    <h3 id="lyrics-title" class="font-extrabold text-cyan-300 text-lg">Track Lyrics</h3>
+                    <p class="text-xs text-gray-400">Xxlyth — RAW</p>
+                </div>
+                <button id="close-lyrics-btn" class="text-gray-400 hover:text-white p-2 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 font-mono text-sm leading-relaxed text-gray-300" id="lyrics-content">
+                <!-- Dynamic Lyrics -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="gallery-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="relative max-w-3xl w-full flex flex-col items-center">
+            <button id="close-gallery-btn" class="absolute -top-10 right-0 text-gray-300 hover:text-white text-2xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="gallery-modal-body" class="w-full bg-purple-950/60 p-4 rounded-2xl border border-cyan-500/40 flex items-center justify-center min-h-[300px]">
+                <!-- Modal artwork preview container -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PayPal Support Modal -->
+    <div id="support-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-[#18022c] to-[#0b0014] border border-cyan-500/40 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-purple-800/50 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-paypal text-cyan-400 text-2xl"></i>
+                    <h3 class="font-extrabold text-cyan-300 text-lg">Support Xxlyth</h3>
+                </div>
+                <button id="close-support-btn" class="text-gray-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Directly support the production of future releases, drill beats, and visuals. All donations go directly to the artist.
+            </p>
+
+            <div class="grid grid-cols-3 gap-3">
+                <button class="donation-amount-btn border border-purple-700/60 bg-purple-900/30 hover:bg-cyan-500/20 hover:border-cyan-400 py-2.5 rounded-xl text-cyan-300 font-bold transition" data-amount="5">$5</button>
+                <button class="donation-amount-btn border border-purple-700/60 bg-purple-900/30 hover:bg-cyan-500/20 hover:border-cyan-400 py-2.5 rounded-xl text-cyan-300 font-bold transition" data-amount="10">$10</button>
+                <button class="donation-amount-btn border border-purple-700/60 bg-purple-900/30 hover:bg-cyan-500/20 hover:border-cyan-400 py-2.5 rounded-xl text-cyan-300 font-bold transition" data-amount="25">$25</button>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs text-gray-400 font-mono">Or enter custom amount ($USD):</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-cyan-400 font-bold">$</span>
+                    <input id="custom-donation-input" type="number" min="1" placeholder="Custom" class="w-full bg-purple-950/80 border border-purple-700/60 rounded-xl pl-8 pr-4 py-2 text-white focus:outline-none focus:border-cyan-400 font-mono">
+                </div>
+            </div>
+
+            <a id="paypal-link-btn" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=krullmorow@gmail.com&item_name=Support+Xxlyth+RAW+Album&currency_code=USD" target="_blank" class="block text-center bg-gradient-to-r from-cyan-400 to-purple-600 hover:from-cyan-300 hover:to-purple-500 text-black font-extrabold py-3 rounded-xl transition duration-200 shadow-lg">
+                Proceed to PayPal
+            </a>
+
+            <div class="text-center text-[10px] text-gray-500 font-mono">
+                Linked to artist account: krullmorow@gmail.com
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modular Import -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, runTransaction, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-rtdb.js";
+
+        // Provided Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgZqIJeIm8VXtk66bttgbQmJQ2sfteDlw",
+            authDomain: "big-essay.firebaseapp.com",
+            databaseURL: "https://big-essay-default-rtdb.firebaseio.com",
+            projectId: "big-essay",
+            storageBucket: "big-essay.firebasestorage.app",
+            messagingSenderId: "1073595171043",
+            appId: "1:1073595171043:web:8a466baddb2f97208845d6",
+            measurementId: "G-4F39G0PTT9"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Firebase Sync Handlers exposed globally
+        window.fbDB = db;
+        window.fbRef = ref;
+        window.fbRunTransaction = runTransaction;
+        window.fbOnValue = onValue;
+
+        // Presence & Listener counter setup
+        const presenceRef = ref(db, 'raw_album/online_listeners');
+        const userPresenceRef = ref(db, 'raw_album/online_listeners/' + Math.random().toString(36).substring(2, 9));
+        
+        // Presence tracking
+        const connectedRef = ref(db, '.info/connected');
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                set(userPresenceRef, true);
+                onDisconnect(userPresenceRef).remove();
+            }
+        });
+
+        // Listen for online listener counts
+        onValue(presenceRef, (snap) => {
+            const data = snap.val();
+            const count = data ? Object.keys(data).length : 1;
+            document.getElementById('online-counter').innerText = count;
+        });
+
+        // Listen for Album Likes
+        const albumLikesRef = ref(db, 'raw_album/likes');
+        onValue(albumLikesRef, (snap) => {
+            const val = snap.val() || 0;
+            document.getElementById('album-likes-count').innerText = val;
+        });
+
+        // Listen for Track Plays & Likes
+        const tracksDataRef = ref(db, 'raw_album/tracks');
+        onValue(tracksDataRef, (snap) => {
+            const data = snap.val() || {};
+            let totalPlays = 0;
+            
+            window.albumTracks.forEach((track, index) => {
+                const trackStats = data[index] || { plays: 0, likes: 0 };
+                totalPlays += trackStats.plays || 0;
+                
+                const playCountEl = document.getElementById(`track-plays-${index}`);
+                const likeCountEl = document.getElementById(`track-likes-${index}`);
+                if (playCountEl) playCountEl.innerText = trackStats.plays || 0;
+                if (likeCountEl) likeCountEl.innerText = trackStats.likes || 0;
+            });
+
+            document.getElementById('total-album-plays').innerText = totalPlays;
+        });
+    </script>
+
+    <!-- Main Logic Script: Web Audio Synthesizer, Visualizer, Tracklist, Canvas -->
+    <script>
+        // Track list definitions
+        window.albumTracks = [
+            { id: 0, title: "Frozen hearts", bpm: 142, duration: "2:45", lyrics: "Frozen hearts in the winter cold\nDrill beats heavy and stories told\nPurple lights on the asphalt street\nXxlyth rhythm with a heavy beat..." },
+            { id: 1, title: "Sex", bpm: 140, duration: "2:30", lyrics: "Late night vibe, late night vision\nPrecision timing on every decision\nSub sliding deep through the speakers now\nXxlyth taking over, show 'em how..." },
+            { id: 2, title: "Bandit", bpm: 145, duration: "3:02", lyrics: "Roll the dice, take the chance\nDark streets doing the night dance\nMasked up, running with the high roll\nGot the game firmly in control..." },
+            { id: 3, title: "Cannon", bpm: 150, duration: "2:55", lyrics: "Booming bass like a heavy blast\nMoving fast, future and the past\nEight-o-eights hitting like a truck\nNever depending on simple luck..." },
+            { id: 4, title: "Pills", bpm: 138, duration: "2:40", lyrics: "Neon lights blur into the night\nSensing everything inside the light\nSynth pads floating over drill snares\nNo worries, no doubts, no cares..." },
+            { id: 5, title: "Mental", bpm: 144, duration: "3:10", lyrics: "Mind state going past the line\nXxlyth making track divine\nHeavy hats rolling fast in three\nUnlocking the full frequency..." },
+            { id: 6, title: "Bullseye", bpm: 142, duration: "2:48", lyrics: "Aim high, hit the center mark\nShining bright even in the dark\nDice spin floating through the room\nDropping heavy beat, sub boom..." },
+            { id: 7, title: "POV", bpm: 146, duration: "3:15", lyrics: "From my point of view it's raw\nBreaking every written rule and law\nFinal track on the album run\nXxlyth legacy has just begun..." }
+        ];
+
+        let currentTrackIndex = -1;
+        let isPlaying = false;
+        let audioCtx = null;
+        let masterGain = null;
+        let analyser = null;
+        let synthesizerInterval = null;
+
+        // Initialize Audio Context on user interaction
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = parseFloat(document.getElementById('volume-slider').value);
+                
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+
+                masterGain.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                
+                startVisualizer();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Web Audio Synthesizer for Drill Beats (Sub 808s, Snares, Hi-hat rolls)
+        function playDrillSound(type, freq = 60, duration = 0.5) {
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'kick808') {
+                // Sliding Sub 808
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                
+                // Pitch slide down (Drill signature sub)
+                osc.frequency.setValueAtTime(freq * 1.8, now);
+                osc.frequency.exponentialRampToValueAtTime(freq, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(30, now + duration);
+
+                gain.gain.setValueAtTime(0.9, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + duration);
+            } else if (type === 'snare') {
+                // Snare with noise
+                const bufferSize = audioCtx.sampleRate * 0.15;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1000;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+
+                noise.start(now);
+            } else if (type === 'hihat') {
+                // Hi-Hat roll
+                const bufferSize = audioCtx.sampleRate * 0.05;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 5000;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+
+                noise.start(now);
+            }
+        }
+
+        // Loop pattern synth for playing active track beat preview
+        function startBeatSynthesizer(track) {
+            stopBeatSynthesizer();
+            initAudioContext();
+
+            let step = 0;
+            const stepTime = (60 / track.bpm) / 4 * 1000; // 16th notes
+
+            synthesizerInterval = setInterval(() => {
+                if (!isPlaying) return;
+
+                // Drill beat rhythm pattern
+                if (step % 16 === 0 || step % 16 === 10) {
+                    playDrillSound('kick808', 55, 0.6);
+                } else if (step % 16 === 3) {
+                    playDrillSound('kick808', 75, 0.4); // Sliding high sub
+                }
+
+                if (step % 16 === 8) {
+                    playDrillSound('snare');
+                }
+
+                // Rapid hi-hat rolls
+                if (step % 2 === 0 || (step >= 12 && step <= 15)) {
+                    playDrillSound('hihat');
+                }
+
+                step = (step + 1) % 16;
+            }, stepTime);
+        }
+
+        function stopBeatSynthesizer() {
+            if (synthesizerInterval) {
+                clearInterval(synthesizerInterval);
+                synthesizerInterval = null;
+            }
+        }
+
+        // Render Tracklist UI
+        function renderTracklist() {
+            const container = document.getElementById('tracklist-container');
+            container.innerHTML = '';
+
+            window.albumTracks.forEach((track, index) => {
+                const isCurrent = currentTrackIndex === index;
+                const trackEl = document.createElement('div');
+                trackEl.className = `p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between cursor-pointer ${
+                    isCurrent 
+                        ? 'bg-gradient-to-r from-purple-900/90 to-cyan-950/80 border-cyan-400 shadow-lg shadow-purple-900/30' 
+                        : 'bg-purple-950/30 border-purple-800/30 hover:bg-purple-900/40 hover:border-purple-600/50'
+                }`;
+
+                trackEl.innerHTML = `
+                    <div class="flex items-center gap-3.5 flex-grow" onclick="selectTrack(${index})">
+                        <div class="w-8 h-8 rounded-lg ${isCurrent ? 'bg-cyan-400 text-black' : 'bg-purple-900/60 text-cyan-300'} flex items-center justify-center font-extrabold text-sm font-mono">
+                            ${isCurrent && isPlaying ? '<i class="fa-solid fa-waveform animate-pulse"></i>' : (index + 1)}
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-gray-100 flex items-center gap-2">
+                                ${track.title}
+                                ${isCurrent ? '<span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-400/30 font-mono">PLAYING</span>' : ''}
+                            </div>
+                            <div class="text-xs text-gray-400 font-mono flex items-center gap-3">
+                                <span>${track.bpm} BPM</span>
+                                <span>•</span>
+                                <span>${track.duration}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="text-right text-xs font-mono text-gray-400 hidden sm:block">
+                            <div><i class="fa-solid fa-play text-[10px] text-cyan-400 mr-1"></i><span id="track-plays-${index}">0</span></div>
+                        </div>
+                        <button onclick="likeTrack(event, ${index})" class="p-2 text-gray-400 hover:text-pink-400 transition">
+                            <i class="fa-regular fa-heart"></i>
+                            <span id="track-likes-${index}" class="text-xs font-mono ml-1">0</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(trackEl);
+            });
+        }
+
+        // Track Selection & Controls
+        function selectTrack(index) {
+            currentTrackIndex = index;
+            isPlaying = true;
+            updatePlayerUI();
+            startBeatSynthesizer(window.albumTracks[index]);
+            incrementTrackPlay(index);
+        }
+
+        function togglePlayPause() {
+            if (currentTrackIndex === -1) {
+                selectTrack(0);
+                return;
+            }
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                startBeatSynthesizer(window.albumTracks[currentTrackIndex]);
+            } else {
+                stopBeatSynthesizer();
+            }
+            updatePlayerUI();
+        }
+
+        function updatePlayerUI() {
+            const playIcon = document.getElementById('play-icon');
+            const playerTitle = document.getElementById('player-title');
+            
+            if (currentTrackIndex >= 0) {
+                const track = window.albumTracks[currentTrackIndex];
+                playerTitle.innerText = `${currentTrackIndex + 1}. ${track.title}`;
+            }
+
+            if (isPlaying) {
+                playIcon.className = 'fa-solid fa-pause';
+            } else {
+                playIcon.className = 'fa-solid fa-play ml-0.5';
+            }
+
+            renderTracklist();
+        }
+
+        // Firebase Sync Actions
+        function incrementTrackPlay(index) {
+            if (window.fbDB && window.fbRef) {
+                const trackRef = window.fbRef(window.fbDB, `raw_album/tracks/${index}/plays`);
+                window.fbRunTransaction(trackRef, (current) => (current || 0) + 1);
+            }
+        }
+
+        function likeTrack(event, index) {
+            event.stopPropagation();
+            if (window.fbDB && window.fbRef) {
+                const trackLikeRef = window.fbRef(window.fbDB, `raw_album/tracks/${index}/likes`);
+                window.fbRunTransaction(trackLikeRef, (current) => (current || 0) + 1);
+            }
+        }
+
+        function likeAlbum() {
+            if (window.fbDB && window.fbRef) {
+                const albumLikesRef = window.fbRef(window.fbDB, 'raw_album/likes');
+                window.fbRunTransaction(albumLikesRef, (current) => (current || 0) + 1);
+            }
+        }
+
+        // Visualizer Canvas Effect
+        function startVisualizer() {
+            const canvas = document.getElementById('visualizer');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * canvas.height;
+
+                    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+                    gradient.addColorStop(0, '#6b21a8');
+                    gradient.addColorStop(0.5, '#06b6d4');
+                    gradient.addColorStop(1, '#22d3ee');
+
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+
+                    x += barWidth;
+                }
+            }
+            draw();
+        }
+
+        // 3D Floating Dice Background Effect
+        function initFloatingDiceCanvas() {
+            const canvas = document.getElementById('dice-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const diceList = Array.from({ length: 15 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 20 + 20,
+                speedY: Math.random() * 0.5 + 0.2,
+                speedX: (Math.random() - 0.5) * 0.3,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.02,
+                opacity: Math.random() * 0.3 + 0.1
+            }));
+
+            function drawDie(x, y, size, angle, opacity) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.globalAlpha = opacity;
+
+                // Cube outline
+                ctx.strokeStyle = '#06b6d4';
+                ctx.lineWidth = 1.5;
+                ctx.fillStyle = '#18022c';
+                
+                ctx.beginPath();
+                ctx.roundRect(-size/2, -size/2, size, size, 6);
+                ctx.fill();
+                ctx.stroke();
+
+                // Pips
+                ctx.fillStyle = '#a855f7';
+                const pipRadius = size / 10;
+                ctx.beginPath();
+                ctx.arc(-size/4, -size/4, pipRadius, 0, Math.PI * 2);
+                ctx.arc(size/4, size/4, pipRadius, 0, Math.PI * 2);
+                ctx.arc(0, 0, pipRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                diceList.forEach(d => {
+                    d.y -= d.speedY;
+                    d.x += d.speedX;
+                    d.rotation += d.rotSpeed;
+
+                    if (d.y < -50) {
+                        d.y = canvas.height + 50;
+                        d.x = Math.random() * canvas.width;
+                    }
+
+                    drawDie(d.x, d.y, d.size, d.rotation, d.opacity);
+                });
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Initialize Modals & Event Listeners
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTracklist();
+            initFloatingDiceCanvas();
+
+            // Like Album Button
+            document.getElementById('like-album-btn').addEventListener('click', likeAlbum);
+
+            // Audio Player Controls
+            document.getElementById('main-play-btn').addEventListener('click', () => {
+                if (currentTrackIndex === -1) selectTrack(0);
+                else togglePlayPause();
+            });
+            document.getElementById('play-pause-btn').addEventListener('click', togglePlayPause);
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentTrackIndex > 0) selectTrack(currentTrackIndex - 1);
+            });
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentTrackIndex < window.albumTracks.length - 1) selectTrack(currentTrackIndex + 1);
+            });
+
+            // Volume Control
+            document.getElementById('volume-slider').addEventListener('input', (e) => {
+                if (masterGain) masterGain.gain.value = parseFloat(e.target.value);
+            });
+
+            // Lyrics Modal
+            const lyricsModal = document.getElementById('lyrics-modal');
+            document.getElementById('open-lyrics-btn').addEventListener('click', () => {
+                const track = currentTrackIndex >= 0 ? window.albumTracks[currentTrackIndex] : window.albumTracks[0];
+                document.getElementById('lyrics-title').innerText = `${track.title} - Lyrics`;
+                document.getElementById('lyrics-content').innerText = track.lyrics;
+                lyricsModal.classList.remove('hidden');
+            });
+            document.getElementById('close-lyrics-btn').addEventListener('click', () => {
+                lyricsModal.classList.add('hidden');
+            });
+
+            // Gallery Lightbox Modal
+            const galleryModal = document.getElementById('gallery-modal');
+            const galleryBody = document.getElementById('gallery-modal-body');
+            document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    const type = thumb.dataset.img;
+                    if (type === 'cover') {
+                        galleryBody.innerHTML = `<div class="text-center"><div class="text-2xl font-bold text-cyan-300 font-rawTitle mb-2">RAW COVER ART</div><p class="text-xs text-gray-400">High-res character artwork with floating dice perspective</p></div>`;
+                    } else if (type === 'title') {
+                        galleryBody.innerHTML = `<div class="text-center"><h1 class="text-7xl font-black raw-text-title">RAW</h1><div class="text-cyan-300 font-bold text-xl font-rawTitle mt-2">Xxlyth</div></div>`;
+                    } else if (type === 'dice') {
+                        galleryBody.innerHTML = `<div class="text-center text-purple-400"><i class="fa-solid fa-dice text-8xl mb-4"></i><div class="text-cyan-300 font-bold">High Roller Concept Art</div></div>`;
+                    } else if (type === 'lore') {
+                        galleryBody.innerHTML = `<div class="p-4 text-left max-w-md"><h3 class="text-xl font-bold text-cyan-300 mb-2">Xxlyth - RAW Lore</h3><p class="text-sm text-gray-300 leading-relaxed">Set in a futuristic cyberpunk city inspired by night life, RAW represents the calculated risks taken in the pursuit of greatness.</p></div>`;
+                    }
+                    galleryModal.classList.remove('hidden');
+                });
+            });
+            document.getElementById('close-gallery-btn').addEventListener('click', () => {
+                galleryModal.classList.add('hidden');
+            });
+
+            // Support / PayPal Modal
+            const supportModal = document.getElementById('support-modal');
+            document.getElementById('open-support-btn').addEventListener('click', () => {
+                supportModal.classList.remove('hidden');
+            });
+            document.getElementById('close-support-btn').addEventListener('click', () => {
+                supportModal.classList.add('hidden');
+            });
+
+            // Support Amount Selection
+            document.querySelectorAll('.donation-amount-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const amount = btn.dataset.amount;
+                    document.getElementById('custom-donation-input').value = amount;
+                    updatePayPalLink(amount);
+                });
+            });
+
+            document.getElementById('custom-donation-input').addEventListener('input', (e) => {
+                updatePayPalLink(e.target.value || '5');
+            });
+
+            function updatePayPalLink(amount) {
+                const paypalBtn = document.getElementById('paypal-link-btn');
+                paypalBtn.href = `https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=krullmorow@gmail.com&item_name=Support+Xxlyth+RAW+Album&amount=${amount}&currency_code=USD`;
+            }
+        });
+    </script>
+</body>
+</html>
